@@ -1,6 +1,6 @@
-projectKey=task_manager
+projectKey=projet_task_manager
 serverUrl=http://localhost:9000
 serverVersion=25.7.0.110598
-dashboardUrl=http://localhost:9000/dashboard?id=task_manager
-ceTaskId=4a63f26e-6edf-4545-b6e9-db513aa161a6
-ceTaskUrl=http://localhost:9000/api/ce/task?id=4a63f26e-6edf-4545-b6e9-db513aa161a6
+dashboardUrl=http://localhost:9000/dashboard?id=projet_task_manager
+ceTaskId=c9760373-92ae-4d2f-90a2-a9a1d01fd70c
+ceTaskUrl=http://localhost:9000/api/ce/task?id=c9760373-92ae-4d2f-90a2-a9a1d01fd70c
