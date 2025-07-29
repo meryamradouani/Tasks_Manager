@@ -221,7 +221,7 @@ const getDashboardData = asyncHandler(async (req, res) => {
   }
 ]);
 
-  const taskDescribution=await taskStatuses.reduce((acc,status)=>{
+  const taskDescribution= taskStatuses.reduce((acc,status)=>{
     const formattedkey=status.replace(/\s+/g,"")//remove spaces*
     acc[formattedkey]=taskDescributionRaw.find((item)=> item._id===status)?.count || 0;
     return acc
@@ -238,7 +238,7 @@ const getDashboardData = asyncHandler(async (req, res) => {
     }
   }
 ]);
-const taskPrioritylevels=await taskPriorities.reduce((acc,priority)=>{
+const taskPrioritylevels= taskPriorities.reduce((acc,priority)=>{
     acc[priority]=taskPrioritylevelsRaw.find((item)=> item._id===priority)?.count || 0;
     return acc
   },{});

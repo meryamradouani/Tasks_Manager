@@ -55,7 +55,7 @@ const getUserById = asyncHandler(async (req, res) => {
 const updateUser = asyncHandler(async (req, res) => {
     const user= User.findById(req.params.id)
     if(!user){
-      
+        return res.status(404).json({message:"Utilisateur non trouvé"})
     }
 })
 // @desc     delete user
