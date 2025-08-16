@@ -1,5 +1,5 @@
 // Configuration des URLs du serveur
-export const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:8000';
+export const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:5000';
 
 // URL de l'image par défaut
 export const DEFAULT_PROFILE_IMAGE = `${SERVER_URL}/uploads/utilisateur.png`;

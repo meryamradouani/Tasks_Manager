@@ -53,7 +53,7 @@ const getUserById = asyncHandler(async (req, res) => {
 // @route   put /api/users/:id
 // @access  Private
 const updateUser = asyncHandler(async (req, res) => {
-    const user= User.findById(req.params.id)
+    const user= await  User.findById(req.params.id)
     if(!user){
         return res.status(404).json({message:"Utilisateur non trouvé"})
     }

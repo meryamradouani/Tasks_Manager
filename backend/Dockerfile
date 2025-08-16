@@ -1,13 +1,16 @@
-FROM node:18-alpine
+# Étape de construction
+FROM node:18-alpine AS builder
 
 WORKDIR /app
 
 COPY package*.json ./
-
 RUN npm install
 
 COPY . .
 
-EXPOSE 3000
+EXPOSE 5000
 
-CMD ["node", "server.js"]
+# Commande de démarrage :
+# -> d'abord lancer init-admin.js pour créer admin
+# -> ensuite démarrer le serveur
+CMD ["sh", "-c", "node init-admin.js && node server.js"]

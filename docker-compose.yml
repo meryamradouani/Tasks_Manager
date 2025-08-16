@@ -1,29 +1,51 @@
-version: '3'
+version: '3.8'
+
 services:
+  mongodb:
+    image: mongo:6
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    command: [--bind_ip_all]
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - app-network
+    restart: unless-stopped
+
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     ports:
       - "5000:5000"
     environment:
-      - NODE_ENV=production
-      - MONGO_URI=mongodb://mongo:27017/taskmanager
-    volumes:
-      - ./backend/uploads:/app/uploads
+    
+      - MONGO_URI=mongodb://mongodb:27017/TaskManager
     depends_on:
-      - mongo
+      - mongodb
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    networks:
+      - app-network
+    restart: unless-stopped
 
-  frontend:
-    build: ./frontend/client
+  client:
+    build:
+      context: ./frontend/client
+      dockerfile: Dockerfile
     ports:
       - "3000:3000"
-
-  mongo:
-    image: mongo:6
-    restart: always
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo-data:/data/db
+    depends_on:
+      - backend
+    networks:
+      - app-network
+    restart: unless-stopped
 
 volumes:
-  mongo-data:
+  mongodb_data:
+
+networks:
+  app-network:
+    driver: bridge
