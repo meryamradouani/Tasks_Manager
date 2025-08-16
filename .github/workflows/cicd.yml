@@ -25,7 +25,7 @@ jobs:
           context: ./backend
           file: Dockerfile
           push: true
-          tags: maryam/taskmanager-backend:latest
+          tags: meryamm/taskmanager-backend:latest
 
       - name: Build & Push Frontend
         uses: docker/build-push-action@v4
@@ -33,4 +33,4 @@ jobs:
           context: ./frontend/client
           file: Dockerfile
           push: true
-          tags: maryam/taskmanager-frontend:latest
+          tags: meryamm/taskmanager-frontend:latest
