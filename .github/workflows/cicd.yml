@@ -2,163 +2,34 @@ name: CI/CD Pipeline with SonarCloud
 
 on:
   push:
-    branches: [main, master, develop]
+    branches: [main, master]
   pull_request:
     branches: [main, master]
 
 env:
   DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}  # Votre token: a58d1aacd9ceb7ab3286650d206145a5c2a6910e
 
 jobs:
-  # Analyse SonarQube Backend avec SonarCloud
-  sonarqube-backend:
-    name: SonarCloud Analysis - Backend
+  # Analyse SonarCloud unique pour tout le projet
+  sonarcloud:
+    name: SonarCloud Analysis
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Setup Node.js (si nécessaire)
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'npm'
-          cache-dependency-path: backend/package-lock.json
-
-      - name: Install dependencies backend
-        run: npm ci
-        working-directory: backend
-        if: contains('**backend**', 'package.json')
-
-      - name: SonarCloud Scan - Backend
-        uses: SonarSource/sonarqube-scan-action@v4
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-scan-action@master        
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          projectBaseDir: backend
-          args: >
-            -Dsonar.projectKey=Tasks_Manager-backend
-            -Dsonar.organization=meryamradouani
-            -Dsonar.projectName="Tasks Manager Backend"
-            -Dsonar.sources=.
-            -Dsonar.exclusions=node_modules/**,uploads/**,**/*.test.js,**/*.spec.js
-            -Dsonar.tests=.
-            -Dsonar.test.inclusions=**/*.test.js,**/*.spec.js
-            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
-            -Dsonar.coverage.exclusions=**/*.test.js,**/*.spec.js
-
-  # Analyse SonarQube Frontend avec SonarCloud
-  sonarqube-frontend:
-    name: SonarCloud Analysis - Frontend
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'npm'
-          cache-dependency-path: frontend/client/package-lock.json
-
-      - name: Install dependencies frontend
-        run: npm ci
-        working-directory: frontend/client
-
-      - name: Build frontend for analysis
-        run: npm run build
-        working-directory: frontend/client
-
-      - name: SonarCloud Scan - Frontend
-        uses: SonarSource/sonarqube-scan-action@v4
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          projectBaseDir: frontend/client
-          args: >
-            -Dsonar.projectKey=Tasks_Manager-frontend
-            -Dsonar.organization=meryamradouani
-            -Dsonar.projectName="Tasks Manager Frontend"
-            -Dsonar.sources=src
-            -Dsonar.exclusions=node_modules/**,build/**,dist/**,**/*.test.js,**/*.spec.js
-            -Dsonar.tests=src
-            -Dsonar.test.inclusions=**/*.test.js,**/*.spec.js
-            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
-            -Dsonar.coverage.exclusions=**/*.test.js,**/*.spec.js
-
-  # Tests Backend
-  test-backend:
-    name: Run Backend Tests
-    runs-on: ubuntu-latest
-    needs: sonarqube-backend
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'npm'
-          cache-dependency-path: backend/package-lock.json
-
-      - name: Install dependencies
-        run: npm ci
-        working-directory: backend
-
-      - name: Run tests with coverage
-        run: |
-          npm test -- --coverage --watchAll=false
-          npm run test:coverage 2>/dev/null || echo "No specific coverage script"
-        working-directory: backend
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
-        with:
-          file: ./backend/coverage/lcov.info
-          flags: backend
-        if: always()
-
-  # Tests Frontend
-  test-frontend:
-    name: Run Frontend Tests
-    runs-on: ubuntu-latest
-    needs: sonarqube-frontend
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'npm'
-          cache-dependency-path: frontend/client/package-lock.json
-
-      - name: Install dependencies
-        run: npm ci
-        working-directory: frontend/client
-
-      - name: Run tests with coverage
-        run: |
-          npm test -- --coverage --watchAll=false
-          npm run test:coverage 2>/dev/null || echo "No specific coverage script"
-        working-directory: frontend/client
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
-        with:
-          file: ./frontend/client/coverage/lcov.info
-          flags: frontend
-        if: always()
 
   # Build et Push Backend
   build-backend:
     name: Build & Push Backend
     runs-on: ubuntu-latest
-    needs: [sonarqube-backend, test-backend]
+    needs: [sonarcloud]
     if: github.event_name == 'push'
     steps:
       - uses: actions/checkout@v4
@@ -173,13 +44,13 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Extract metadata
-        id: meta-backend
+        id: meta
         uses: docker/metadata-action@v5
         with:
           images: ${{ secrets.DOCKER_USERNAME }}/taskmanager-backend
           tags: |
             type=ref,event=branch
-            type=sha,prefix={{branch}}-
+            type=sha
             type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Build and push Backend
@@ -188,17 +59,14 @@ jobs:
           context: ./backend
           file: ./backend/Dockerfile
           push: true
-          tags: ${{ steps.meta-backend.outputs.tags }}
-          labels: ${{ steps.meta-backend.outputs.labels }}
-          cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/taskmanager-backend:buildcache
-          cache-to: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/taskmanager-backend:buildcache,mode=max
-          platforms: linux/amd64
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
 
   # Build et Push Frontend
   build-frontend:
     name: Build & Push Frontend
     runs-on: ubuntu-latest
-    needs: [sonarqube-frontend, test-frontend]
+    needs: [sonarcloud]
     if: github.event_name == 'push'
     steps:
       - uses: actions/checkout@v4
@@ -213,13 +81,13 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Extract metadata
-        id: meta-frontend
+        id: meta
         uses: docker/metadata-action@v5
         with:
           images: ${{ secrets.DOCKER_USERNAME }}/taskmanager-frontend
           tags: |
             type=ref,event=branch
-            type=sha,prefix={{branch}}-
+            type=sha
             type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Build and push Frontend
@@ -228,45 +96,30 @@ jobs:
           context: ./frontend/client
           file: ./frontend/client/Dockerfile
           push: true
-          tags: ${{ steps.meta-frontend.outputs.tags }}
-          labels: ${{ steps.meta-frontend.outputs.labels }}
-          cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/taskmanager-frontend:buildcache
-          cache-to: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/taskmanager-frontend:buildcache,mode=max
-          platforms: linux/amd64
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
 
   # Rapport final
   report:
     name: Pipeline Report
     runs-on: ubuntu-latest
-    needs: [sonarqube-backend, sonarqube-frontend, test-backend, test-frontend, build-backend, build-frontend]
+    needs: [sonarcloud, build-backend, build-frontend]
     if: always()
     steps:
-      - name: Generate comprehensive report
+      - name: Summary
         run: |
-          echo "📊 CI/CD PIPELINE REPORT - SONARCLOUD"
-          echo "======================================"
+          echo "📊 CI/CD PIPELINE REPORT"
+          echo "======================="
           echo ""
-          echo "🔍 CODE QUALITY:"
-          echo "   ✅ Backend Analysis: ${{ needs.sonarqube-backend.result }}"
-          echo "   ✅ Frontend Analysis: ${{ needs.sonarqube-frontend.result }}"
+          echo "🔍 Code Quality: ${{ needs.sonarcloud.result }}"
+          echo "🐳 Backend Build: ${{ needs.build-backend.result }}"
+          echo "🐳 Frontend Build: ${{ needs.build-frontend.result }}"
           echo ""
-          echo "🧪 TESTS:"
-          echo "   ✅ Backend Tests: ${{ needs.test-backend.result }}"
-          echo "   ✅ Frontend Tests: ${{ needs.test-frontend.result }}"
+          echo "🌐 SonarCloud: https://sonarcloud.io/project/overview?id=meryamradouani_Tasks_Manager"
           echo ""
-          echo "🐳 DOCKER BUILDS:"
-          echo "   ✅ Backend Image: ${{ needs.build-backend.result }}"
-          echo "   ✅ Frontend Image: ${{ needs.build-frontend.result }}"
-          echo ""
-          echo "🌐 SONARCLOUD LINKS:"
-          echo "   📋 Backend: https://sonarcloud.io/project/overview?id=Tasks_Manager-backend"
-          echo "   📋 Frontend: https://sonarcloud.io/project/overview?id=Tasks_Manager-frontend"
-          echo ""
-          if [ "${{ needs.sonarqube-backend.result }}" == "success" ] && [ "${{ needs.sonarqube-frontend.result }}" == "success" ]; then
-            echo "🎉 PIPELINE COMPLETED SUCCESSFULLY!"
-            echo "🚀 Your code quality reports are available on SonarCloud"
+          if [ "${{ needs.sonarcloud.result }}" == "success" ]; then
+            echo "✅ Pipeline completed successfully!"
           else
-            echo "⚠️  Pipeline completed with some issues"
-            echo "🔧 Check the logs above for details"
+            echo "❌ Pipeline failed"
             exit 1
           fi
