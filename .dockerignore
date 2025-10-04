@@ -2,3 +2,6 @@
 Dockerfile
 docker-compose.yaml
 node_modules
+# SonarQube
+.scannerwork/
+.sonar/
