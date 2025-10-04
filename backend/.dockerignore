@@ -1,9 +1,12 @@
 node_modules
 npm-debug.log
-Dockerfile
-.dockerignore
+.env
 .git
 .gitignore
 README.md
-.env
+.vscode
+.idea
+*.md
+.DS_Store
 uploads/*
+!uploads/.gitkeep

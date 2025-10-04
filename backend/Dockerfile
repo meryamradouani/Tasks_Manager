@@ -1,16 +1,21 @@
-# Étape de construction
-FROM node:18-alpine AS builder
+FROM node:20-alpine
 
 WORKDIR /app
 
+# Copier les fichiers de dépendances
 COPY package*.json ./
-RUN npm install
 
+# Installer les dépendances
+RUN npm ci --only=production
+
+# Copier le reste des fichiers
 COPY . .
 
+# Créer le dossier uploads
+RUN mkdir -p uploads
+
+# Exposer le port 5000
 EXPOSE 5000
 
-# Commande de démarrage :
-# -> d'abord lancer init-admin.js pour créer admin
-# -> ensuite démarrer le serveur
-CMD ["sh", "-c", "node init-admin.js && node server.js"]
+# Démarrer l'application
+CMD ["npm", "start"]

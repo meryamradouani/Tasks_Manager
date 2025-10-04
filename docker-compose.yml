@@ -1,51 +1,44 @@
-version: '3.8'
-
 services:
-  mongodb:
-    image: mongo:6
-    container_name: mongodb
-    ports:
-      - "27017:27017"
-    command: [--bind_ip_all]
-    volumes:
-      - mongodb_data:/data/db
-    networks:
-      - app-network
-    restart: unless-stopped
-
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    container_name: taskmanager-backend
+    restart: unless-stopped
     ports:
       - "5000:5000"
     environment:
-    
-      - MONGO_URI=mongodb://mongodb:27017/TaskManager
-    depends_on:
-      - mongodb
+      - NODE_ENV=production
+      - PORT=5000
+      - MONGO_URI=mongodb+srv://meryamradouani_db_user:UK3pDTl80yolv2fY@cluster0.tsubttf.mongodb.net/TaskManager?retryWrites=true&w=majority&appName=Cluster0
+      - JWT_SECRET=meryam1234
+      - ADMIN_EMAIL=meryam@admin.com
+      - ADMIN_PASSWORD=meryam1234
+      - CLIENT_URL=http://localhost:80
     volumes:
-      - ./backend:/app
-      - /app/node_modules
+      - ./backend/uploads:/app/uploads
     networks:
-      - app-network
-    restart: unless-stopped
+      - taskmanager-network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:5000/api/auth/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
-  client:
+  frontend:
     build:
       context: ./frontend/client
       dockerfile: Dockerfile
+    container_name: taskmanager-frontend
+    restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "80:80"
     depends_on:
       - backend
     networks:
-      - app-network
-    restart: unless-stopped
-
-volumes:
-  mongodb_data:
+      - taskmanager-network
 
 networks:
-  app-network:
+  taskmanager-network:
     driver: bridge

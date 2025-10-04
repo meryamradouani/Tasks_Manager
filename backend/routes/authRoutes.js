@@ -6,7 +6,9 @@ const upload = require('../middleware/uploadMiddleware.js');
 const multer = require('multer'); // Added multer import
 
 router.use(express.json());
-
+router.get('/health', (req, res) => {
+    res.status(200).json({ status: 'OK' });
+  });
 router.post('/register', registerUser);
 router.post('/login', LoginUser);
 router.get('/logout', logoutUser);
