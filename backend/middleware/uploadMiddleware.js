@@ -6,14 +6,13 @@ const storage = multer.diskStorage({
       cb(null, 'uploads/'); // Dossier de destination
     },
     filename: function (req, file, cb) {
-        cb(null,new Date().toISOString().replace(/:/g,"-")+ file.originalname);
+        cb(null, new Date().toISOString().replaceAll(":","-") + '-' + file.originalname);
     }
 });
 // Filtres : accepter images, PDFs et documents
 const fileFilter = (req, file, cb) => {
     const allowedTypes = [
         'image/jpeg', 
-        'image/png', 
         'image/gif', 
         'image/webp',
         'application/pdf',

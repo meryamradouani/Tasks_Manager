@@ -155,7 +155,9 @@ const updateTaskStatus = asyncHandler(async (req, res) => {
   task.status = req.body.status || task.status;
 
   if (task.status === "completed") {
-    task.todoChecklist.forEach(item => item.completed = true);
+    for (const item of task.todoChecklist) {
+      item.completed = true;
+    }
     task.progress = 100;
   }
 
