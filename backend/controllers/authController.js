@@ -7,7 +7,7 @@ const asynchandler = require("express-async-handler");
 // generate JWT token
 const generateToken = (user) => {
     return jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, {
-        expiresIn: '356d',
+        expiresIn: '30d',
     });
 };
 
@@ -170,12 +170,20 @@ const forgotPassword = asynchandler(async (req, res) => {
     user.resetPasswordExpires = resetTokenExpiry;
     await user.save();
 
-    // En production, vous devriez envoyer un email ici
-    // Pour le moment, on retourne le token (à supprimer en production)
+    // TODO: Implémenter l'envoi d'email en production
+    const resetUrl = `${req.protocol}://${req.get('host')}/reset-password/${resetToken}`;
+    
+    // En développement uniquement - retourner le token
+    if (process.env.NODE_ENV === 'development') {
+        return res.status(200).json({
+            message: 'Un email de réinitialisation a été envoyé',
+            resetToken: resetToken,
+            resetUrl: resetUrl
+        });
+    }
+    
     res.status(200).json({
-        message: 'Un email de réinitialisation a été envoyé',
-        resetToken: resetToken, // À supprimer en production
-        resetUrl: `${req.protocol}://${req.get('host')}/reset-password/${resetToken}`
+        message: 'Un email de réinitialisation a été envoyé'
     });
 });
 

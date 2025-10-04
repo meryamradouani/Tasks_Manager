@@ -48,31 +48,17 @@ const getTasks = asyncHandler(async (req, res) => {
 // @route   GET /api/tasks/:id
 // @access  Private
 const getTaskById = asyncHandler(async (req, res) => {
-  console.log('Getting task by ID:', req.params.id);
-  console.log('Current user:', req.user);
-  
   const task = await Task.findById(req.params.id).populate("assignedTo", "name email profile");
   if (!task) {
-    console.log('Task not found');
     return res.status(404).json({ message: "Tâche non trouvée" });
   }
 
-  console.log('Task found:', task);
-  console.log('Task assignedTo:', task.assignedTo);
-  console.log('Current user ID:', req.user._id.toString());
-
-  // Vérifier si l'utilisateur a le droit d'accéder à cette tâche
   const isAssigned = task.assignedTo.some(userId => userId._id.toString() === req.user._id.toString());
-  console.log('Is user assigned:', isAssigned);
-  console.log('User role:', req.user.role);
   
-  // Temporairement permettre à tous les utilisateurs de voir toutes les tâches
-  // if (!isAssigned && req.user.role !== 'admin') {
-  //   console.log('User not authorized');
-  //   return res.status(403).json({ message: "Non autorisé à accéder à cette tâche" });
-  // }
+  if (!isAssigned && req.user.role !== 'admin') {
+    return res.status(403).json({ message: "Non autorisé à accéder à cette tâche" });
+  }
 
-  console.log('User authorized, sending task');
   res.json(task);
 });
 
@@ -168,7 +154,7 @@ const updateTaskStatus = asyncHandler(async (req, res) => {
 // @desc    Update task checklist
 // @route   PUT /api/tasks/:id/todo
 // @access  Private
-const updateTaskCheklist = asyncHandler(async (req, res) => {
+const updateTaskChecklist = asyncHandler(async (req, res) => {
   const { todoChecklist } = req.body;
   const task = await Task.findById(req.params.id);
   if (!task) {
@@ -346,7 +332,7 @@ module.exports = {
   getTasks,
   createTask,
   updateTask,
-  updateTaskCheklist,
+  updateTaskChecklist,
   updateTaskStatus,
   getDashboardData,
   getUserDashboardData,

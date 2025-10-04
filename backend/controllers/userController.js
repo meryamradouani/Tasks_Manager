@@ -43,7 +43,7 @@ const getUserById = asyncHandler(async (req, res) => {
     ...user._doc,
     pendingTask,
     inProgressTask,
-    completedTask,
+    completedTask
   };
 
   res.json(userWithTaskCounts);
@@ -51,19 +51,50 @@ const getUserById = asyncHandler(async (req, res) => {
 
 // @desc     update user
 // @route   put /api/users/:id
-// @access  Private
+// @access  Private (admin)
 const updateUser = asyncHandler(async (req, res) => {
-    const user= await  User.findById(req.params.id)
-    if(!user){
-        return res.status(404).json({message:"Utilisateur non trouvé"})
+    const user = await User.findById(req.params.id);
+    if (!user) {
+        return res.status(404).json({ message: "Utilisateur non trouvé" });
     }
-})
+
+    const { name, email, role, profile } = req.body;
+    user.name = name || user.name;
+    user.email = email || user.email;
+    user.role = role || user.role;
+    user.profile = profile || user.profile;
+
+    const updatedUser = await user.save();
+    res.json({
+        message: "Utilisateur mis à jour avec succès",
+        user: {
+            _id: updatedUser._id,
+            name: updatedUser.name,
+            email: updatedUser.email,
+            role: updatedUser.role,
+            profile: updatedUser.profile
+        }
+    });
+});
+
 // @desc     delete user
-// @route    delete/api/users/:id
-// @access  Private
-const   deleteUser = asyncHandler(async (req, res) => {
-    
-})
+// @route    delete /api/users/:id
+// @access  Private (admin)
+const deleteUser = asyncHandler(async (req, res) => {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+        return res.status(404).json({ message: "Utilisateur non trouvé" });
+    }
+
+    // Supprimer toutes les tâches assignées à cet utilisateur
+    await Task.updateMany(
+        { assignedTo: user._id },
+        { $pull: { assignedTo: user._id } }
+    );
+
+    await User.findByIdAndDelete(req.params.id);
+    res.json({ message: "Utilisateur supprimé avec succès" });
+});
 
 // Exportez correctement
 module.exports = {
