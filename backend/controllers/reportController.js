@@ -16,7 +16,6 @@ const exportTaskReport = asyncHandler(async (req, res) => {
       { header: "Task ID", key: "_id", width: 25 },
       { header: "Title", key: "title", width: 30 },
       { header: "Status", key: "status", width: 15 },
-      { header: "Priority", key: "priority", width: 15 },
       { header: "Description", key: "description", width: 30 },
       { header: "Due Date", key: "dueDate", width: 20 },
       { header: "Assigned To", key: "assignedTo", width: 40 }
@@ -42,25 +41,7 @@ const exportTaskReport = asyncHandler(async (req, res) => {
       "Content-Type",
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     );
-    res.setHeader(
-      "Content-Disposition",
-      "attachment; filename=tasks-report.xlsx"
-    );
-
-    await workbook.xlsx.write(res);
-    res.end();
-  } catch (error) {
-    res.status(500).json({ 
-      message: "Error exporting tasks", 
-      error: error.message 
-    });
-  }
-});
-
-// @desc    Export users tasks statistics
-// @route   GET /api/reports/export/users
-// @access  Private (admin)
-const exportUsersReport = asyncHandler(async (req, res) => {
+{{ ... }}
   try {
     const users = await User.find().select("name email");
     const tasks = await Task.find().populate("assignedTo", "name email");
@@ -118,36 +99,7 @@ const exportUsersReport = asyncHandler(async (req, res) => {
       "Content-Type",
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     );
-    res.setHeader(
-      "Content-Disposition",
-      "attachment; filename=users_report.xlsx"
-    );
-
-    await workbook.xlsx.write(res);
-    res.end();
-
-  } catch (error) {
-    console.error("Export error:", error);
-    res.status(500).json({ 
-      message: "Error generating report", 
-      error: error.message 
-    });
-  }
-});
-
-// @desc    Export user assigned tasks as an Excel file
-// @route   GET /api/reports/export/my-tasks
-// @access  Private (user)
-const exportMyTasksReport = asyncHandler(async (req, res) => {
-  try {
-    const tasks = await Task.find({ assignedTo: req.user._id });
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet("My Tasks Report");
-
-    worksheet.columns = [
-      { header: "Task ID", key: "_id", width: 25 },
-      { header: "Title", key: "title", width: 30 },
-      { header: "Status", key: "status", width: 15 },
+{{ ... }}
       { header: "Priority", key: "priority", width: 15 },
       { header: "Description", key: "description", width: 30 },
       { header: "Due Date", key: "dueDate", width: 20 }
@@ -168,7 +120,7 @@ const exportMyTasksReport = asyncHandler(async (req, res) => {
       "Content-Type",
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     );
-    res.setHeader(
+{{ ... }}
       "Content-Disposition",
       "attachment; filename=my_tasks_report.xlsx"
     );
