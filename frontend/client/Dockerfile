@@ -3,6 +3,10 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# Argument de build pour l'URL du serveur (vide pour Docker, localhost:5000 pour dev local)
+ARG VITE_SERVER_URL=
+ENV VITE_SERVER_URL=${VITE_SERVER_URL}
+
 # Copier les fichiers de dépendances
 COPY package*.json ./
 

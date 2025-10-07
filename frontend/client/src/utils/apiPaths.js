@@ -1,5 +1,7 @@
 // apiPaths.js
-export const API_BASE_URL = "http://localhost:5000";
+// En production Docker, nginx proxy les requêtes /api vers le backend
+// En développement local, on utilise localhost:5000
+export const API_BASE_URL = import.meta.env.VITE_SERVER_URL || "";
 
 const apiPaths = {
   // ==================== AUTHENTIFICATION ====================

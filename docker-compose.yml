@@ -30,29 +30,17 @@ services:
     build:
       context: ./frontend/client
       dockerfile: Dockerfile
+      args:
+        - VITE_SERVER_URL=
     container_name: taskmanager-frontend
     restart: unless-stopped
     ports:
       - "80:80"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     networks:
       - taskmanager-network
-
-  sonarqube:
-    image: sonarqube:community
-    container_name: sonarqube
-    ports:
-      - "9000:9000"
-    environment:
-      - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
-    volumes:
-      - sonarqube_data:/opt/sonarqube/data
-    networks:
-      - taskmanager-network
-
-volumes:
-  sonarqube_data:
 
 networks:
   taskmanager-network:
