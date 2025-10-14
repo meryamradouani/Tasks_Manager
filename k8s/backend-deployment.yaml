@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: taskmanager
+  labels:
+    app: backend
+    tier: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend
+      tier: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+        tier: backend
+    spec:
+      containers:
+      - name: backend
+        image: 221645205382.dkr.ecr.us-east-1.amazonaws.com/taskmanager-backend:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5000
+          name: http
+        env:
+        - name: NODE_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: taskmanager-config
+              key: NODE_ENV
+        - name: PORT
+          valueFrom:
+            configMapKeyRef:
+              name: taskmanager-config
+              key: PORT
+        - name: CLIENT_URL
+          valueFrom:
+            configMapKeyRef:
+              name: taskmanager-config
+              key: CLIENT_URL
+        - name: MONGO_URI
+          valueFrom:
+            secretKeyRef:
+              name: taskmanager-secrets
+              key: MONGO_URI
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: taskmanager-secrets
+              key: JWT_SECRET
+        - name: ADMIN_EMAIL
+          valueFrom:
+            secretKeyRef:
+              name: taskmanager-secrets
+              key: ADMIN_EMAIL
+        - name: ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: taskmanager-secrets
+              key: ADMIN_PASSWORD
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /api/auth/health
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /api/auth/health
+            port: 5000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        # SUPPRIMER les volumeMounts et volumes
