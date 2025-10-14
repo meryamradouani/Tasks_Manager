@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
       - name: backend
-        image: 221645205382.dkr.ecr.us-east-1.amazonaws.com/taskmanager-backend:latest
+        image: meryamm/taskmanager-backend:latest
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 5000

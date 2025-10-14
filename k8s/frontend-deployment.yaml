@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: 221645205382.dkr.ecr.us-east-1.amazonaws.com/taskmanager-frontend:latest
+        image: meryamm/taskmanager-frontend:latest
         imagePullPolicy: Never
         ports:
         - containerPort: 80
