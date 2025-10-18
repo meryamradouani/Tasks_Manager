@@ -8,11 +8,11 @@ const path = require("path");
 // Configuration CORS - DOIT être avant les autres middlewares
 app.use(cors({
   origin: function(origin, callback) {
-    // Autoriser les requêtes sans origin (comme Postman) ou depuis localhost
     if (!origin || origin.startsWith('http://localhost')) {
       callback(null, true);
     } else {
-      callback(null, true); // En production, remplacer par callback(new Error('Not allowed by CORS'))
+      // En production, refuser les origines non autorisées
+      callback(new Error('Not allowed by CORS'));
     }
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
@@ -20,6 +20,7 @@ app.use(cors({
   credentials: true,
   optionsSuccessStatus: 200
 }));
+
 
 // Middleware pour parser JSON et URL-encoded
 app.use(express.json());
