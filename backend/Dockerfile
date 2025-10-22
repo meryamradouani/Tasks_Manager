@@ -17,5 +17,6 @@ RUN mkdir -p uploads
 # Exposer le port 5000
 EXPOSE 5000
 
+
 # Démarrer l'application
 CMD ["npm", "start"]
