@@ -19,8 +19,8 @@ spec:
     spec:
       containers:
       - name: frontend
-        #image: 115707859735.dkr.ecr.us-east-1.amazonaws.com/taskmanager-frontend:latest
-        image: taskmanager-frontend:latest
+        image: 115707859735.dkr.ecr.us-east-1.amazonaws.com/taskmanager-frontend:latest
+        #image: taskmanager-frontend:latest
 
         imagePullPolicy: IfNotPresent
         ports:

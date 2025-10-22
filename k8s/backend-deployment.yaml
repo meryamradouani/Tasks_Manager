@@ -19,8 +19,8 @@ spec:
     spec:
       containers:
       - name: backend
-        #image: 115707859735.dkr.ecr.us-east-1.amazonaws.com/taskmanager-backend:latest
-        image: taskmanager-backend:latest
+        image: 115707859735.dkr.ecr.us-east-1.amazonaws.com/taskmanager-backend:latest
+        #image: taskmanager-backend:latest
 
         imagePullPolicy: IfNotPresent
         ports:
